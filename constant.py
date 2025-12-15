@@ -1,0 +1,19 @@
+# font = 'Montserrat'
+font = 'Poppins'
+fontSizeText = 10
+fontSizeSubTitle = 12
+fontSizeTitle = 14
+
+puissance_transmission = 23
+gain_antenne_transition = 0
+sinr = -4.13
+density_bruit = -174
+puissance_bruit = -110.66
+facteur_bruit = 2
+gain_antenne_reception = 17
+perte_cable = 0.5
+sensibility = -129.29
+interference = 3
+effet_masque = 7.68
+corps_humain = 1
+penetration_interrieur_batiment = 15
