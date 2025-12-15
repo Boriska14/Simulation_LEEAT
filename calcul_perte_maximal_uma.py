@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (
 )
 import math
 import constant as const
-from show_graph import ShowGraph
+#from show_graph import ShowGraph
 
 class CalculPerteMaximaleModelUma(QWidget):
     pireMValueCalcul = 0
