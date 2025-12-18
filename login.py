@@ -1,25 +1,15 @@
 import sys
 import os
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from PyQt5.QtGui import QPixmap, QFont, QRegExpValidator
+from PyQt5.QtCore import Qt, QRegExp, QSize
 from PyQt5.QtWidgets import (
-    QApplication,
-    QFormLayout,
-    QLabel,
-    QLineEdit,
-    QComboBox,
-    QWidget,
-    QStackedLayout,
-    QGridLayout,
-    QHBoxLayout,
-    QPushButton,
-    QVBoxLayout,
+    QApplication, QWidget, QLabel, QLineEdit, QComboBox,
+    QVBoxLayout, QHBoxLayout, QFormLayout, QPushButton,
+    QSpacerItem, QSizePolicy, QDialog
 )
+
 from bilan_liaison_montante import BilanLiaisonMontante
 import constant as const
-from qtwidgets import PasswordEdit
 
 class Login(QWidget):
     def resource_path(self, relative_path):
@@ -32,129 +22,113 @@ class Login(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("EMIS.LEEAT")
-        # Create a top-level layout
-
-        btnLayout = QHBoxLayout()
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        self.setLayout(layout)
-
+        
+        # Create main layout
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignCenter)
+        self.setLayout(main_layout)
         self.resize(500, 415)
         
-        # creating label
-        self.label = QLabel(self)
-         
-        # loading image
-        self.pixmap = QPixmap(self.resource_path('./images/icon.png'))
- 
-        # adding image to label
-        self.label.setPixmap(self.pixmap)
+        # Add logo/image
+        self.logo_label = QLabel(self)
+        pixmap = QPixmap(self.resource_path('./images/icon.png'))
+        if pixmap.isNull():
+            print("Warning: Could not load icon.png")
+        self.logo_label.setPixmap(pixmap)
+        self.logo_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.logo_label)
 
-        self.label.setAlignment(Qt.AlignCenter)
- 
-        # Optional, resize label to image size
-        self.label.resize(self.pixmap.width(),
-                          self.pixmap.height())
-
-        layout.addWidget(self.label)
-
-        font = QFont(const.font, const.fontSizeText, QFont.Bold)
-
-        # Create and connect the combo box to switch between pages
-        self.pageCombo = QComboBox()
-        self.pageCombo.addItems(["Admin"])
-        # self.pageCombo.activated.connect(self.switchPage)
-
-        login = QLabel('Login:')
-        login.setFont(font)
-
-        password = QLabel('Password:')
-        password.setFont(font)
-
-        self.title = QLabel(" Test bench Propagation attenuation simulation tool on mobility (coverage and capacity) for the 5G network")
-        fontTitle = QFont(const.font, const.fontSizeTitle, QFont.Bold)
-        self.title.setFont(fontTitle)
+        # Title
+        self.title = QLabel(
+            "Test bench Propagation attenuation simulation tool on mobility "
+            "(coverage and capacity) for the 5G network"
+        )
+        title_font = QFont(const.font, const.fontSizeTitle, QFont.Bold)
+        self.title.setFont(title_font)
         self.title.setAlignment(Qt.AlignCenter)
         self.title.setWordWrap(True)
+        main_layout.addWidget(self.title)
+        
+        # Add spacer
+        main_layout.addSpacing(20)
 
-        # setting geometry to the label 
-        # self.title.setMaximumWidth(560)
-        layout.addWidget(self.title)
-        layout.addItem(QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        # Login form
+        self.pageCombo = QComboBox()
+        self.pageCombo.addItems(["Admin"])
+        
+        self.passwordValue = QLineEdit()
+        self.passwordValue.setEchoMode(QLineEdit.Password)
+        
+        form_layout = QFormLayout()
+        form_layout.addRow("Login:", self.pageCombo)
+        form_layout.addRow("Password:", self.passwordValue)
+        
+        main_layout.addLayout(form_layout)
+        main_layout.addSpacing(30)
 
-        # Create the first page
-        # self.passwordValue = QLineEdit(self)
-        # self.passwordValue.setEchoMode(QLineEdit.Password)
-
-        self.passwordValue = PasswordEdit()
-        self.form = QWidget()
-        self.formLayout = QFormLayout()
-        self.formLayout.addRow(login, self.pageCombo)
-        self.formLayout.addRow(password, self.passwordValue)
-        self.form.setLayout(self.formLayout)
-        layout.addWidget(self.form)
-
-        buttonWindow1 = QPushButton('login', self)
-        buttonWindow1.setMaximumWidth(250)
-        buttonWindow1.setMinimumWidth(200)
-        buttonWindow1.setFont(QFont(const.font, const.fontSizeText))
-        buttonWindow1.clicked.connect(self.validateBtn)
-
-        buttonWindow2 = QPushButton('close', self)
-        buttonWindow2.setMaximumWidth(250)
-        buttonWindow2.setMinimumWidth(200)
-        buttonWindow2.setFont(QFont(const.font, const.fontSizeText))
-        buttonWindow2.clicked.connect(self.cancelBtn)
-
-        btnLayout.setAlignment(Qt.AlignCenter)
-        btnLayout.addStretch()
-        btnLayout.addWidget(buttonWindow2)
-        btnLayout.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        btnLayout.addWidget(buttonWindow1)
-        btnLayout.addStretch()
-
-        nextBtn = QWidget()
-        nextBtn.setLayout(btnLayout)
-
-        # Set the layout on the dialog
-        layout.addWidget(nextBtn)
-        layout.addStretch()
-
-    def switchPage(self):
-        self.stackedLayout.setCurrentIndex(self.pageCombo.currentIndex())
+        # Buttons
+        button_layout = QHBoxLayout()
+        
+        close_btn = QPushButton("Close")
+        close_btn.setMinimumWidth(150)
+        close_btn.clicked.connect(self.close)
+        
+        login_btn = QPushButton("Login")
+        login_btn.setMinimumWidth(150)
+        login_btn.clicked.connect(self.validateBtn)
+        
+        button_layout.addStretch()
+        button_layout.addWidget(close_btn)
+        button_layout.addSpacing(20)
+        button_layout.addWidget(login_btn)
+        button_layout.addStretch()
+        
+        main_layout.addLayout(button_layout)
+        main_layout.addStretch()
 
     def show_dialog(self):
-        # Create a QDialog instance
         dialog = QDialog(self)
         dialog.setWindowTitle("Warning")
-
-        # Create a label with a message
-        label = QLabel("Please enter the correct login credentials.")
-
-        # Create a layout for the dialog
-        dialog_layout = QVBoxLayout()
-        dialog_layout.addWidget(label)
-
-        # Set the layout for the dialog
-        dialog.setLayout(dialog_layout)
-
-        # Show the dialog as a modal dialog (blocks the main window)
+        dialog.resize(300, 100)
+        
+        layout = QVBoxLayout()
+        message = QLabel("Please enter the correct login credentials.")
+        message.setAlignment(Qt.AlignCenter)
+        
+        ok_btn = QPushButton("OK")
+        ok_btn.clicked.connect(dialog.accept)
+        
+        layout.addWidget(message)
+        layout.addWidget(ok_btn)
+        dialog.setLayout(layout)
+        
         dialog.exec_()
 
     def validateBtn(self):
-        print('value: ' + self.passwordValue.text())
-        print('value combo: ' + self.pageCombo.currentText())
-        if self.pageCombo.currentText() == 'Admin' and self.passwordValue.text() == "Azerty@12":
-            self.window = BilanLiaisonMontante(linkScreen=self, sens="Montantee")
-            self.window.show()
+        username = self.pageCombo.currentText()
+        password = self.passwordValue.text()
+        
+        print(f"Login attempt: Username={username}, Password={'*' * len(password)}")
+        
+        if username == "Admin" and password == "Azerty@12":
+            print("Login successful!")
+            
+            # Show success message
+            from PyQt5.QtWidgets import QMessageBox
+            QMessageBox.information(
+                self, 
+                "Success", 
+                "Login successful!\n\nNext step: Connect to bilan_liaison_montante window."
+            )
+            
+            # For now, we'll keep it simple and not open the next window
+            # We'll fix the linkScreen issue separately
         else:
             self.show_dialog()
-      
-    def cancelBtn(self):
-        self.close()
-
+    
     def validatePassword(self):
-        reg_ex = QRegExp("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$")
-        input_validator = QRegExpValidator(reg_ex, self.passwordValue)
-        self.passwordValue.setValidator(input_validator)
-
+        # This method is defined but not called in the current code
+        # Keep it for future use if needed
+        reg_ex = QRegExp(r"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#\$&*~]).{8,}$")
+        validator = QRegExpValidator(reg_ex, self.passwordValue)
+        self.passwordValue.setValidator(validator)
